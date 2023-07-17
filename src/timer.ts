@@ -12,23 +12,15 @@ export default class Timer {
   public start(callback: (dt: number) => void) {
     this.callback = callback;
     this.lastTime = performance.now();
-    this.requestNextFrame();
-  }
-
-  private requestNextFrame() {
-    requestAnimationFrame(() => this.loop());
+    this.loop();
   }
 
   private loop() {
-    this.update();
-    this.callback(this.deltaTime);
-    this.requestNextFrame();
-  }
-
-  private update() {
     const now = performance.now();
     this.deltaTime = (now - this.lastTime);
     this.lastTime = now;
+    this.callback(this.deltaTime);
+    requestAnimationFrame(() => this.loop());
   }
 
   public getDeltaTime() {
