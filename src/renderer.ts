@@ -1,19 +1,22 @@
 import config from "./config";
 import Map from "./map";
 import Player from "./player";
+import { Assets } from "./utils";
 
 export default class Renderer {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private map: Map;
+  private assets: Assets;
 
-  constructor(canvas: HTMLCanvasElement, width: number, height: number, map: Map) {
+  constructor(canvas: HTMLCanvasElement, width: number, height: number, map: Map, assets: Assets) {
     this.canvas = canvas;
     this.canvas.width = width;
     this.canvas.height = height;
     this.canvas.style.backgroundColor = 'gray';
     this.ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
     this.map = map;
+    this.assets = assets;
   }
 
   public clear() {
@@ -33,31 +36,39 @@ export default class Renderer {
     let mapCell = null;
     const maxDistance = config.VIEW_DISTANCE;
 
+    let xOffset = 0;
+    let yOffset = 0;
+
     while (rayDistance < maxDistance) {
       rayX = x + rayDistance * Math.cos(rayAngle);
       rayY = y + rayDistance * Math.sin(rayAngle);
 
       mapCell = this.map.getCell(Math.floor(rayX), Math.floor(rayY));
 
-      if (mapCell === 1) {
+      if (mapCell !== 0) {
+        xOffset = rayX % 1;
+        yOffset = rayY % 1;
         break;
       }
 
       rayDistance += 0.01;
     }
 
-    return {
+
+    const ray = {
       distance: rayDistance,
-      object: mapCell
+      object: mapCell,
+      xOffset,
+      yOffset,
     }
+
+    return ray;
   }
+
+
 
   public render(player: Player) {
     const screenWidth = this.canvas.width;
-    const screenHeight = this.canvas.height;
-
-    const halfScreenWidth = screenWidth / 2;
-    const halfScreenHeight = screenHeight / 2;
 
     const playerX = player.position.x;
     const playerY = player.position.y;
@@ -65,7 +76,7 @@ export default class Renderer {
 
     this.clear();
 
-    for (let column = 0; column < screenWidth; column++) {
+    for (let column = 0; column < screenWidth; column += config.COLUMN_WIDTH) {
       const rayAngle = (playerAngle - config.FOV / 2) + (column / screenWidth) * config.FOV;
       const ray = this.castRay(playerX, playerY, rayAngle);
 
@@ -73,22 +84,40 @@ export default class Renderer {
     }
   }
 
+
   private renderColumn(column: number, ray: any) {
     const screenHeight = this.canvas.height;
+    const textureSize = 16;
 
     const rayDistance = ray.distance;
-    const rayObject = ray.object;
+    const xOffset = ray.xOffset;
+    const yOffset = ray.yOffset;
 
     const wallHeight = (config.TILE_SIZE / rayDistance) * config.VIEW_DISTANCE;
 
     const wallTop = (screenHeight / 2) - (wallHeight / 2);
     const wallBottom = (screenHeight / 2) + (wallHeight / 2);
 
-    const wallColor = (rayObject === 2) ? 'blue' : 'white';
+    const columnWidth = wallHeight * config.COLUMN_WIDTH * 2;
+    const texturePosition = [textureSize * ray.object, 0];
 
-    this.drawRect(column, 0, 1, wallTop, 'black');
-    this.drawRect(column, wallTop, 1, wallHeight, wallColor);
-    this.drawRect(column, wallBottom, 1, screenHeight - wallBottom, 'black');
+    // sky
+    this.drawRect(column, 0, columnWidth, wallTop, 'skyblue');
+    // this.drawRect(column, wallTop, columnWidth, wallHeight, wallColor);
+    // ground
+    this.drawRect(column, wallBottom, columnWidth, screenHeight - wallBottom, 'green')
+    // texture
+    this.ctx.drawImage(
+      this.assets['assets/textures.png'],
+      texturePosition[0] + Math.floor(xOffset * textureSize),
+      texturePosition[1],
+      columnWidth,
+      textureSize,
+      column,
+      wallTop,
+      columnWidth,
+      wallHeight
+    );
   }
 
 }

@@ -13,7 +13,7 @@ export default class Map {
     for (let y = 0; y < this.grid.length; y++) {
       for (let x = 0; x < this.grid[y].length; x++) {
         const tile = this.grid[y][x];
-        if (tile === 1) {
+        if (tile === 7) {
           renderer.drawRect(x * tileSize, y * tileSize, tileSize, tileSize, 'white');
         } else if (tile === 2) {
           renderer.drawRect(x * tileSize, y * tileSize, tileSize, tileSize, 'blue');
