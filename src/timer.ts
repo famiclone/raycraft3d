@@ -26,4 +26,12 @@ export default class Timer {
   public getDeltaTime() {
     return this.deltaTime;
   }
+
+  public getFPS(type: string = 'raw') {
+    if (type === 'raw') {
+      return 1000 / this.deltaTime;
+    } else if (type === 'rounded') {
+      return Math.round(1000 / this.deltaTime);
+    }
+  }
 }

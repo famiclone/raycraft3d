@@ -1,7 +1,9 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: darkblue;
+  background-color: gray;
+  background-image: url("assets/bg.png");
+  background-size: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -14,3 +16,6 @@ main {
   justify-content: center;
 }
 
+canvas {
+  image-rendering: pixelated;
+}

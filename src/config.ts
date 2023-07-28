@@ -5,7 +5,8 @@ const config = {
   FOV: 0.5,
   VIEW_DISTANCE: 100,
   WALL_HEIGHT: 16,
-  COLUMN_WIDTH: 1
+  COLUMN_WIDTH: 1,
+  MINIMAP_SCALE: 0.25,
 };
 
 export default config;

@@ -1,4 +1,5 @@
 import config from "./config";
+import FontRenderer from "./font-renderer";
 import Map from "./map";
 import Player from "./player";
 import { Assets } from "./utils";
@@ -8,6 +9,7 @@ export default class Renderer {
   private ctx: CanvasRenderingContext2D;
   private map: Map;
   private assets: Assets;
+  public font: FontRenderer;
 
   constructor(canvas: HTMLCanvasElement, width: number, height: number, map: Map, assets: Assets) {
     this.canvas = canvas;
@@ -17,10 +19,15 @@ export default class Renderer {
     this.ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
     this.map = map;
     this.assets = assets;
+    this.font = new FontRenderer(this.ctx, assets['assets/font.png'], 8, 8);
   }
 
   public clear() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+
+  public getCanvas() {
+    return this.canvas;
   }
 
   public drawRect(x: number, y: number, width: number, height: number, color: string) {
@@ -65,16 +72,26 @@ export default class Renderer {
     return ray;
   }
 
+  private renderCrosshair() {
+    const screenWidth = this.canvas.width;
+    const screenHeight = this.canvas.height;
 
+    const crosshairWidth = 2;
+    const crosshairHeight =16;
 
-  public render(player: Player) {
+    const crosshairX = (screenWidth / 2) - (crosshairWidth / 2);
+    const crosshairY = (screenHeight / 2) - (crosshairHeight / 2);
+
+    this.drawRect(crosshairX, crosshairY - crosshairHeight / 2 + 1, crosshairWidth, crosshairHeight, 'white');
+    this.drawRect(crosshairX - crosshairHeight / 2 + 1, crosshairY, crosshairHeight, crosshairWidth, 'white');
+  }
+
+  private renderCamera(player: Player) {
     const screenWidth = this.canvas.width;
 
     const playerX = player.position.x;
     const playerY = player.position.y;
     const playerAngle = player.angle;
-
-    this.clear();
 
     for (let column = 0; column < screenWidth; column += config.COLUMN_WIDTH) {
       const rayAngle = (playerAngle - config.FOV / 2) + (column / screenWidth) * config.FOV;
@@ -82,8 +99,21 @@ export default class Renderer {
 
       this.renderColumn(column, ray);
     }
+    this.renderCrosshair();
   }
 
+  public render(player: Player) {
+    this.clear();
+    this.renderCamera(player);    
+    this.renderHand();
+  }
+
+  public renderHand() {
+    const screenWidth = this.canvas.width;
+    const screenHeight = this.canvas.height;
+
+    this.ctx.drawImage(this.assets['assets/gui.png'], 0, 0, 512, 357, screenWidth - 512, screenHeight - 357, 512, 357);
+  }
 
   private renderColumn(column: number, ray: any) {
     const screenHeight = this.canvas.height;
